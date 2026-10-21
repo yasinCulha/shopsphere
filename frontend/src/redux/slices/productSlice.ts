@@ -5,12 +5,11 @@ import {
 } from "@reduxjs/toolkit";
 import axios from "axios";
 import { AxiosError } from "axios";
-import type { BasketItem } from "../../types/product";
 import type { Product, ProductsResponse } from "../../types/product";
 
 const PRODUCT_STORAGE_KEY = "shopsphere:product-data";
 
-type PersistedProductData = Pick<ProductState, "favorites" | "basket">;
+type PersistedProductData = Pick<ProductState, "favorites">;
 
 function isProduct(value: unknown): value is Product {
   if (typeof value !== "object" || value === null) return false;
@@ -31,26 +30,14 @@ function isProduct(value: unknown): value is Product {
   );
 }
 
-function isBasketItem(value: unknown): value is BasketItem {
-  if (typeof value !== "object" || value === null) return false;
-
-  const item = value as Record<string, unknown>;
-  return (
-    isProduct(item.product) &&
-    typeof item.quantity === "number" &&
-    Number.isInteger(item.quantity) &&
-    item.quantity > 0
-  );
-}
-
 export function loadPersistedProductData(): PersistedProductData {
   if (typeof localStorage === "undefined") {
-    return { favorites: [], basket: [] };
+    return { favorites: [] };
   }
 
   try {
     const serializedData = localStorage.getItem(PRODUCT_STORAGE_KEY);
-    if (!serializedData) return { favorites: [], basket: [] };
+    if (!serializedData) return { favorites: [] };
 
     const data: unknown = JSON.parse(serializedData);
     if (typeof data !== "object" || data === null) {
@@ -61,23 +48,17 @@ export function loadPersistedProductData(): PersistedProductData {
     const favorites = Array.isArray(persisted.favorites)
       ? persisted.favorites.filter(isProduct)
       : [];
-    const basket = Array.isArray(persisted.basket)
-      ? persisted.basket.filter(isBasketItem)
-      : [];
-
     if (
       !Array.isArray(persisted.favorites) ||
-      !Array.isArray(persisted.basket) ||
-      favorites.length !== persisted.favorites.length ||
-      basket.length !== persisted.basket.length
+      favorites.length !== persisted.favorites.length
     ) {
-      console.error("Some saved favorites or basket items were invalid.");
+      console.error("Some saved favorite items were invalid.");
     }
 
-    return { favorites, basket };
+    return { favorites };
   } catch (error) {
-    console.error("Could not load favorites and basket from local storage.", error);
-    return { favorites: [], basket: [] };
+    console.error("Could not load favorites from local storage.", error);
+    return { favorites: [] };
   }
 }
 
@@ -87,7 +68,7 @@ export function savePersistedProductData(data: PersistedProductData): void {
   try {
     localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
-    console.error("Could not save favorites and basket to local storage.", error);
+    console.error("Could not save favorites to local storage.", error);
   }
 }
 
@@ -98,7 +79,6 @@ export interface ProductState {
   searchError: string | null;
   searchRequestId: string | null;
   favorites: Product[];
-  basket: BasketItem[];
   selectedProduct: Product | null;
   loading: boolean;
   error: string | null;
@@ -234,54 +214,6 @@ const productSlice = createSlice({
       state.favorites = [];
     },
 
-    addToBasket: (state, action: PayloadAction<Product>) => {
-      const product = action.payload;
-
-      const existingItem = state.basket.find(
-        (item) => item.product.id === product.id,
-      );
-
-      if (existingItem) {
-        existingItem.quantity += 1;
-      } else {
-        state.basket.push({
-          product,
-          quantity: 1,
-        });
-      }
-    },
-
-    increaseProductQuantity: (state, action: PayloadAction<number>) => {
-      const existingItem = state.basket.find(
-        (item) => item.product.id === action.payload,
-      );
-
-      if (existingItem) {
-        existingItem.quantity += 1;
-      }
-    },
-
-    deleteProductsByBasket: (state, action: PayloadAction<number>) => {
-      state.basket = state.basket.filter(
-        (item) => item.product.id !== action.payload,
-      );
-    },
-
-    decreaseProductQuantity: (state, action: PayloadAction<number>) => {
-      const existingItem = state.basket.find(
-        (item) => item.product.id === action.payload,
-      );
-
-      if (existingItem) {
-        existingItem.quantity -= 1;
-
-        if (existingItem.quantity <= 0) {
-          state.basket = state.basket.filter(
-            (item) => item.product.id !== action.payload,
-          );
-        }
-      }
-    },
   },
   extraReducers: (builder) => {
     builder.addCase(searchProducts.pending, (state, action) => {
@@ -379,9 +311,5 @@ export const {
   clearSearchResults,
   toggleFavorite,
   clearFavorites,
-  addToBasket,
-  increaseProductQuantity,
-  decreaseProductQuantity,
-  deleteProductsByBasket,
 } = productSlice.actions;
 export default productSlice.reducer;

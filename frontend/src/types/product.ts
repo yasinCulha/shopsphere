@@ -25,7 +25,3 @@ export interface ProductsResponse {
   limit: number;
 }
 
-export interface BasketItem {
-  product: Product;
-  quantity: number;
-}

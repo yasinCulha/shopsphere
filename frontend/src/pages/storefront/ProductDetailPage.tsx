@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
@@ -9,14 +9,32 @@ import type { AppDispatch, RootState } from "../../redux/store";
 import {
   getProductByID,
   toggleFavorite,
-  addToBasket,
 } from "../../redux/slices/productSlice";
 import "swiper/css";
 import "swiper/css/pagination";
+import { addProductToCart } from "../../services/cartService";
+
 function ProductDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { id } = useParams();
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const [cartMessage, setCartMessage] = useState("");
 
+  async function handleAddToCart() {
+    if (!accessToken) {
+      setCartMessage("Sepete eklemek için giriş yapmalısın.");
+      return;
+    }
+
+    try {
+      const data = await addProductToCart(accessToken, product.id);
+      setCartMessage(data.message);
+    } catch (error) {
+      setCartMessage(
+        error instanceof Error ? error.message : "Ürün sepete eklenemedi.",
+      );
+    }
+  }
   const product = useSelector((state: RootState) => {
     const productId = Number(id);
     return (
@@ -102,11 +120,12 @@ function ProductDetailPage() {
                 </button>
 
                 <button
-                  onClick={() => dispatch(addToBasket(product))}
+                  onClick={handleAddToCart}
                   title=""
                   className="text-white cursor-pointer bg-black mt-4 sm:mt-0 bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-primary-600  focus:outline-none dark:focus:ring-primary-800 flex items-center justify-center"
                   role="button"
                 >
+                  {cartMessage && <p className="mt-2">{cartMessage}</p>}
                   <HiOutlineShoppingBag
                     size={21}
                     className="shrink-0 mr-2"
@@ -119,7 +138,7 @@ function ProductDetailPage() {
               <hr className="my-6 md:my-8 border-gray-200" />
 
               <p className="mb-6 text-gray-500 dark:text-gray-400">
-               {product.description}
+                {product.description}
               </p>
             </div>
           </div>

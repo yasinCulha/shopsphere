@@ -12,8 +12,8 @@ export const store = configureStore({
 });
 
 store.subscribe(() => {
-  const { favorites, basket } = store.getState().products;
-  savePersistedProductData({ favorites, basket });
+  const { favorites } = store.getState().products;
+  savePersistedProductData({ favorites });
 });
 
 export type RootState = ReturnType<typeof store.getState>;

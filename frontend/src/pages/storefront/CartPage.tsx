@@ -4,12 +4,17 @@ import { IoTrashOutline } from "react-icons/io5";
 import { LuHeart } from "react-icons/lu";
 import type { AppDispatch, RootState } from "../../redux/store";
 import {
-  decreaseProductQuantity,
-  deleteProductsByBasket,
-  increaseProductQuantity,
   toggleFavorite,
 } from "../../redux/slices/productSlice";
-import truncateText from "../../utils/truncateText"
+import truncateText from "../../utils/truncateText";
+import { useEffect, useState } from "react";
+import {
+  getCart,
+  removeProductFromCart,
+  updateCartQuantity,
+} from "../../services/cartService";
+import Loading from "../../components/Loading";
+
 const formatPrice = (price: number) =>
   price.toLocaleString("tr-TR", {
     style: "currency",
@@ -18,13 +23,78 @@ const formatPrice = (price: number) =>
 
 function CartPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const basket = useSelector((state: RootState) => state.products.basket);
+
+  const [basket, setBasket] = useState<
+    {
+      product: {
+        id: number;
+        title: string;
+        category: string;
+        price: number;
+        thumbnail: string;
+      };
+      quantity: number;
+    }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
+  useEffect(() => {
+    async function loadCart() {
+      if (!accessToken) {
+        setBasket([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getCart(accessToken);
+        setBasket(data.items);
+      } catch (error) {
+        console.error("Sepet yüklenemedi:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCart();
+  }, [accessToken]);
 
   const totalPrice = basket.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0,
   );
+  async function handleQuantityChange(productId: number, quantity: number) {
+    if (!accessToken || quantity < 1) return;
 
+    try {
+      await updateCartQuantity(accessToken, productId, quantity);
+
+      setBasket((current) =>
+        current.map((item) =>
+          item.product.id === productId ? { ...item, quantity } : item,
+        ),
+      );
+    } catch (error) {
+      console.error("Ürün miktarı güncellenemedi:", error);
+    }
+  }
+  async function handleRemove(productId: number) {
+    if (!accessToken) return;
+
+    try {
+      await removeProductFromCart(accessToken, productId);
+      setBasket((current) =>
+        current.filter((item) => item.product.id !== productId),
+      );
+    } catch (error) {
+      console.error("Ürün sepetten silinemedi:", error);
+    }
+  }
+  if (loading) {
+    return <Loading />;
+  }
   return (
     <section className="bg-cream py-8 text-black antialiased md:py-16">
       <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
@@ -80,7 +150,7 @@ function CartPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            dispatch(decreaseProductQuantity(product.id))
+                            handleQuantityChange(product.id, quantity - 1)
                           }
                           aria-label={`${product.title} miktarını azalt`}
                           className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md border border-cream bg-cream text-lg text-black transition-colors hover:bg-cream-dark"
@@ -96,7 +166,7 @@ function CartPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            dispatch(increaseProductQuantity(product.id))
+                            handleQuantityChange(product.id, quantity + 1)
                           }
                           aria-label={`${product.title} miktarını artır`}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-md border cursor-pointer border-cream bg-cream text-lg text-black transition-colors hover:bg-cream-dark"
@@ -121,9 +191,7 @@ function CartPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        dispatch(deleteProductsByBasket(product.id))
-                      }
+                      onClick={() => handleRemove(product.id)}
                       className="inline-flex items-center gap-1.5 text-sm font-medium text-[#9C4A3C] hover:underline cursor-pointer"
                     >
                       <IoTrashOutline aria-hidden="true" />
@@ -148,7 +216,7 @@ function CartPage() {
               {basket.map(({ product, quantity }) => (
                 <div className="flex justify-between">
                   <div className="flex ">
-                    <p className="mr-2">{truncateText(product.title,25)}</p>
+                    <p className="mr-2">{truncateText(product.title, 25)}</p>
                     <span>x</span>
                     <p className="ml-2">{quantity}</p>
                   </div>

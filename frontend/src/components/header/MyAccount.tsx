@@ -10,6 +10,8 @@ interface MyAccountProps {
 function MyAccount({ className }: MyAccountProps) {
   const user = useSelector((state: RootState) => state.auth.user);
 
+  
+
   return (
     <Link
       to={user ? "/my-account" : "/login"}

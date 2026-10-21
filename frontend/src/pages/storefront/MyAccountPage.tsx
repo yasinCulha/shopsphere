@@ -1,4 +1,3 @@
-
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { AppDispatch, RootState } from "../../redux/store";
@@ -8,6 +7,19 @@ function MyAccountPage() {
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  async function handleLogout() {
+    try {
+      await fetch(`${import.meta.env.VITE_BASE_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      console.log("Sunucuya ulaşılamadı; yerel oturum kapatılıyor.");
+    }
+    dispatch(logout());
+    navigate("/login");
+  }
 
   if (!user) {
     return (
@@ -43,10 +55,7 @@ function MyAccountPage() {
       </div>
 
       <button
-        onClick={() => {
-          dispatch(logout());
-          navigate("/login");
-        }}
+        onClick={handleLogout}
         className="mt-6 rounded-lg border px-5 py-3"
       >
         Çıkış Yap
