@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { clearAdminToken } from "../../services/adminService";
+import { API_URL } from "../../services/apiConfig";
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `block rounded-lg px-3 py-2 text-sm ${isActive ? "bg-white text-black" : "text-stone-300 hover:bg-stone-800 hover:text-white"}`;
@@ -9,7 +10,7 @@ function AdminLayout() {
 
   async function handleLogout() {
     try {
-      await fetch(`${import.meta.env.VITE_BASE_URL}/auth/logout`, {
+      await fetch(`${API_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

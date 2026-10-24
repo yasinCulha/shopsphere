@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveAdminToken } from "../../services/adminService";
+import { API_URL } from "../../services/apiConfig";
 
 function AdminLoginPage() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ function AdminLoginPage() {
     setError("");
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/admin/login`, {
+      const response = await fetch(`${API_URL}/admin/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

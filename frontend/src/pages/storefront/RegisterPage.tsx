@@ -10,6 +10,7 @@ import {
   registerSchema,
   type RegisterFormData,
 } from "../../schemas/registerSchema";
+import { API_URL } from "../../services/apiConfig";
 import type { User } from "../../data/testUser";
 
 type AuthUser = Omit<User, "password">;
@@ -42,7 +43,7 @@ function RegisterPage() {
   async function onSubmit(formData: RegisterFormData) {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/register`,
+        `${API_URL}/register`,
         {
           method: "POST",
           headers: {

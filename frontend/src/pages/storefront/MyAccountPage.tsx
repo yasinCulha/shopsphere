@@ -17,6 +17,7 @@ import {
 } from "../../services/accountService";
 import { addressSchema, profileSchema } from "../../schemas/accountSchema";
 import AccountMenu from "../../components/account/AccountMenu";
+import { API_URL } from "../../services/apiConfig";
 
 const emptyAddress: AddressForm = {
   title: "",
@@ -88,7 +89,7 @@ function MyAccountPage() {
 
   async function handleLogout() {
     try {
-      await fetch(`${import.meta.env.VITE_BASE_URL}/auth/logout`, {
+      await fetch(`${API_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

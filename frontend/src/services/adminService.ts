@@ -1,6 +1,5 @@
 import type { Product } from "../types/product";
-
-const API_URL = import.meta.env.VITE_BASE_URL;
+import { API_URL } from "./apiConfig";
 const TOKEN_KEY = "shopsphereAdminAccessToken";
 
 export function getAdminToken() {

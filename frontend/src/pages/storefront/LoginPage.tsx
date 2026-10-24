@@ -8,6 +8,7 @@ import type { AppDispatch } from "../../redux/store";
 import { loginSuccess, setAccessToken } from "../../redux/slices/authSlice";
 import { loginSchema, type LoginFormData } from "../../schemas/loginSchema";
 import type { User } from "../../data/testUser";
+import { API_URL } from "../../services/apiConfig";
 
 type AuthUser = Omit<User, "password">;
 
@@ -31,7 +32,7 @@ function LoginPage() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/auth/login`,
+        `${API_URL}/auth/login`,
         {
           method: "POST",
           credentials: "include",

@@ -6,6 +6,7 @@ import {
 import axios from "axios";
 import { AxiosError } from "axios";
 import type { Product, ProductsResponse } from "../../types/product";
+import { API_URL } from "../../services/apiConfig";
 
 const PRODUCT_STORAGE_KEY = "shopsphere:product-data";
 
@@ -95,8 +96,6 @@ const initialState: ProductState = {
   loading: false,
   error: null,
 };
-
-const API_URL = import.meta.env.VITE_BASE_URL;
 
 export const getProducts = createAsyncThunk<ProductsResponse>(
   "products/getAllProducts",

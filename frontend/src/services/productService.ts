@@ -1,7 +1,6 @@
 import axios from "axios";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-
-const API_URL = import.meta.env.VITE_BASE_URL;
+import { API_URL } from "./apiConfig";
 
 export const getAllCategories = createAsyncThunk<string[]>(
   "categories/getAllCategories",

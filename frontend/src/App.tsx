@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "./redux/store";
 import { setFavorites } from "./redux/slices/productSlice";
 import { getFavorites } from "./services/favoritesService";
+import { API_URL } from "./services/apiConfig";
 import { useEffect } from "react";
 import { ToastProvider } from "./components/ui/ToastProvider";
 import AdminGuard from "./components/admin/AdminGuard";
@@ -42,7 +43,7 @@ function App() {
     async function refreshLogin() {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_BASE_URL}/auth/refresh`,
+          `${API_URL}/auth/refresh`,
           {
             method: "POST",
             credentials: "include",

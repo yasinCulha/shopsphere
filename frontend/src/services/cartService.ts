@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_BASE_URL;
+import { API_URL } from "./apiConfig";
 
 export async function getCart(accessToken: string) {
   const response = await fetch(`${API_URL}/cart`, {

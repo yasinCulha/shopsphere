@@ -1,6 +1,5 @@
 import type { User } from "../data/testUser";
-
-const API_URL = import.meta.env.VITE_BASE_URL;
+import { API_URL } from "./apiConfig";
 
 export type AccountUser = Omit<User, "password"> & { createdAt?: string };
 
