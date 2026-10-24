@@ -61,40 +61,11 @@ Neon Console'da kullanacağın branch'i seç, SQL Editor'ü aç ve [`backend/dat
 
 Tabloları oluşturmak ürünleri otomatik eklemez. Seed komutu DummyJSON'dan ürünleri okuyup Neon'a yazar.
 
-### 2. Backend ortam değişkenleri
+### 2. Ortam ayarlarını yap
 
-`backend/.env.example` dosyasını `backend/.env` olarak kopyalayıp Neon bağlantı bilgilerini ve uzun, gizli bir JWT anahtarını doldur:
+Backend ve frontend klasörlerinde kendi yerel `.env` dosyalarını oluştur. Backend dosyasında Neon bağlantı bilgilerini, JWT için gizli anahtarı ve uygulamanın ihtiyaç duyduğu sunucu ayarlarını; frontend dosyasında backend API adresini kendi ortamına göre tanımla. Bu dosyaların içeriğini GitHub'a veya herkese açık yerlere koyma.
 
-```env
-DATABASE_URL=postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
-JWT_ACCESS_SECRET=uzun-ve-tahmin-edilemez-bir-gizli-deger
-PORT=5555
-FRONTEND_URL=http://localhost:5173
-```
-
-PowerShell'de proje kökünden:
-
-```powershell
-Copy-Item backend/.env.example backend/.env
-```
-
-`.env` dosyalarını GitHub'a gönderme; bunlar `.gitignore` ile dışarıda bırakılır.
-
-### 3. Frontend ortam değişkeni
-
-`frontend/.env.example` dosyasını `frontend/.env` olarak kopyala ve API adresini ayarla:
-
-```env
-VITE_BASE_URL=http://localhost:5555/api
-```
-
-PowerShell:
-
-```powershell
-Copy-Item frontend/.env.example frontend/.env
-```
-
-### 4. Paketleri yükle
+### 3. Paketleri yükle
 
 İki klasörde de ayrı ayrı `npm install` çalıştır:
 
@@ -105,7 +76,7 @@ cd ../frontend
 npm install
 ```
 
-### 5. Ürünleri ekle ve uygulamayı başlat
+### 4. Ürünleri ekle ve uygulamayı başlat
 
 Ürün seed komutu internetten DummyJSON ürünlerini alıp veritabanına ekler:
 
