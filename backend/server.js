@@ -25,6 +25,10 @@ app.use("/api/favorites", require("./routes/favoritesRoutes"));
 app.use("/api/account", require("./routes/accountRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 
-app.listen(PORT, () => {
-  console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
+  });
+}
+
+module.exports = app;
