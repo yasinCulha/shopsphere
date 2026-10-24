@@ -1,14 +1,5 @@
 # ShopSphere Backend
 
-## Neon veritabanını hazırlama
+Express ve PostgreSQL backend kurulumu, API rotaları ve admin hesabı hazırlığı için [proje ana README dosyasına](../README.md) bakın.
 
-1. Neon Console'da ShopSphere projesini, kullanacağınız branch'i ve veritabanını seçin.
-2. **SQL Editor**'ü açın.
-3. [`database/schema.sql`](./database/schema.sql) dosyasının tamamını editöre yapıştırıp çalıştırın.
-4. Sol taraftaki **Tables** bölümünde `public` şemasını yenileyin. `products`, `users` ve `refresh_tokens` tabloları görünmelidir.
-
-Şema dosyası `IF NOT EXISTS` kullandığı için aynı başlangıç SQL'ini tekrar çalıştırmak var olan tabloları silmez.
-
-Ürünleri eklemek için backend klasöründe `npm run seed` komutunu çalıştırın. Bu komut yalnızca `products` tablosuna ürün yazar; tabloları oluşturmaz.
-
-Backend bağlantısı için `backend/.env` dosyasında `DATABASE_URL` ve `JWT_ACCESS_SECRET` tanımlı olmalıdır. `DATABASE_URL`, Neon Console'da seçtiğiniz branch ve veritabanına ait bağlantı adresi olmalıdır.
+Veritabanı başlangıç şeması [`database/schema.sql`](./database/schema.sql) dosyasındadır. Backend ortam değişkenleri için [`.env.example`](./.env.example) dosyasını kullanın; gerçek `backend/.env` dosyasını Git'e eklemeyin.

@@ -209,11 +209,13 @@ const productSlice = createSlice({
         state.favorites.push(product);
       }
     },
+    setFavorites: (state, action: PayloadAction<Product[]>) => {
+      state.favorites = action.payload;
+    },
 
     clearFavorites: (state) => {
       state.favorites = [];
     },
-
   },
   extraReducers: (builder) => {
     builder.addCase(searchProducts.pending, (state, action) => {
@@ -311,5 +313,6 @@ export const {
   clearSearchResults,
   toggleFavorite,
   clearFavorites,
+  setFavorites,
 } = productSlice.actions;
 export default productSlice.reducer;

@@ -3,9 +3,7 @@ import { Link } from "react-router-dom";
 import { IoTrashOutline } from "react-icons/io5";
 import { LuHeart } from "react-icons/lu";
 import type { AppDispatch, RootState } from "../../redux/store";
-import {
-  toggleFavorite,
-} from "../../redux/slices/productSlice";
+import { setFavorites } from "../../redux/slices/productSlice";
 import truncateText from "../../utils/truncateText";
 import { useEffect, useState } from "react";
 import {
@@ -13,7 +11,13 @@ import {
   removeProductFromCart,
   updateCartQuantity,
 } from "../../services/cartService";
+import {
+  addFavorite,
+  getFavorites,
+  removeFavorite,
+} from "../../services/favoritesService";
 import Loading from "../../components/Loading";
+import { useToast } from "../../components/ui/ToastProvider";
 
 const formatPrice = (price: number) =>
   price.toLocaleString("tr-TR", {
@@ -39,6 +43,8 @@ function CartPage() {
   const [loading, setLoading] = useState(true);
 
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const favorites = useSelector((state: RootState) => state.products.favorites);
+  const { showToast } = useToast();
 
   useEffect(() => {
     async function loadCart() {
@@ -76,8 +82,17 @@ function CartPage() {
           item.product.id === productId ? { ...item, quantity } : item,
         ),
       );
+      showToast({
+        title: "Sepet güncellendi",
+        message: `Ürün adedi ${quantity} oldu.`,
+        duration: 2500,
+      });
     } catch (error) {
-      console.error("Ürün miktarı güncellenemedi:", error);
+      showToast({
+        title: "Miktar güncellenemedi",
+        message: error instanceof Error ? error.message : "Bir hata oluştu.",
+        kind: "error",
+      });
     }
   }
   async function handleRemove(productId: number) {
@@ -88,8 +103,48 @@ function CartPage() {
       setBasket((current) =>
         current.filter((item) => item.product.id !== productId),
       );
+      showToast({ title: "Ürün sepetten çıkarıldı", message: "Sepetin güncellendi." });
     } catch (error) {
-      console.error("Ürün sepetten silinemedi:", error);
+      showToast({
+        title: "Ürün çıkarılamadı",
+        message: error instanceof Error ? error.message : "Bir hata oluştu.",
+        kind: "error",
+      });
+    }
+  }
+
+  async function handleToggleFavorite(product: (typeof basket)[number]["product"]) {
+    if (!accessToken) {
+      showToast({
+        title: "Giriş yapmalısın",
+        message: "Favorilerini hesabında saklamak için giriş yap.",
+        kind: "info",
+        action: { label: "Giriş yap", to: "/login" },
+      });
+      return;
+    }
+
+    const isFavorite = favorites.some((item) => item.id === product.id);
+
+    try {
+      if (isFavorite) {
+        await removeFavorite(accessToken, product.id);
+      } else {
+        await addFavorite(accessToken, product.id);
+      }
+
+      const updatedFavorites = await getFavorites(accessToken);
+      dispatch(setFavorites(updatedFavorites));
+      showToast({
+        title: isFavorite ? "Favorilerden çıkarıldı" : "Favorilere eklendi",
+        message: product.title,
+      });
+    } catch (error) {
+      showToast({
+        title: "Favori işlemi başarısız",
+        message: error instanceof Error ? error.message : "Bir hata oluştu.",
+        kind: "error",
+      });
     }
   }
   if (loading) {
@@ -183,11 +238,13 @@ function CartPage() {
                   <div className="mt-4 flex gap-4 border-t border-cream pt-4">
                     <button
                       type="button"
-                      onClick={() => dispatch(toggleFavorite(product))}
+                      onClick={() => handleToggleFavorite(product)}
                       className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 transition-colors hover:text-black cursor-pointer"
                     >
                       <LuHeart aria-hidden="true" />
-                      Favorilere ekle
+                      {favorites.some((item) => item.id === product.id)
+                        ? "Favorilerden çıkar"
+                        : "Favorilere ekle"}
                     </button>
                     <button
                       type="button"

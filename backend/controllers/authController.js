@@ -137,6 +137,53 @@ const register = async (req, res) => {
   }
 };
 
+const adminLogin = async (req, res) => {
+  try {
+    const validation = loginSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ message: "E-posta ve şifre bilgilerini kontrol et." });
+    }
+
+    const result = await pool.query(
+      `SELECT id, first_name, last_name, email, password_hash, image, role
+       FROM users WHERE email = $1`,
+      [validation.data.email.toLowerCase()],
+    );
+    const user = result.rows[0];
+    if (!user || user.role !== "admin") {
+      return res.status(401).json({ message: "Admin hesabı bulunamadı veya yetkin yok." });
+    }
+
+    const passwordIsCorrect = await bcrypt.compare(validation.data.password, user.password_hash);
+    if (!passwordIsCorrect) {
+      return res.status(401).json({ message: "E-posta veya şifre hatalı." });
+    }
+
+    const refreshToken = createRefreshToken();
+    await pool.query(
+      `INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+       VALUES ($1, $2, NOW() + INTERVAL '7 days')`,
+      [user.id, hashRefreshToken(refreshToken)],
+    );
+    setRefreshCookie(res, refreshToken);
+
+    return res.json({
+      message: "Admin girişi başarılı.",
+      accessToken: createAccessToken(Number(user.id)),
+      user: {
+        id: Number(user.id),
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email,
+        image: user.image,
+      },
+    });
+  } catch (error) {
+    console.error("Admin giriş hatası:", error.message);
+    return res.status(500).json({ message: "Admin girişi yapılamadı." });
+  }
+};
+
 const refreshSession = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
@@ -244,4 +291,4 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { login, register, refreshSession, logout };
+module.exports = { login, adminLogin, register, refreshSession, logout };

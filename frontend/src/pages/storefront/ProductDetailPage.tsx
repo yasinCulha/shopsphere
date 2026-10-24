@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
@@ -13,28 +13,46 @@ import {
 import "swiper/css";
 import "swiper/css/pagination";
 import { addProductToCart } from "../../services/cartService";
+import { addFavorite, removeFavorite } from "../../services/favoritesService";
+import { useToast } from "../../components/ui/ToastProvider";
 
 function ProductDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { id } = useParams();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-  const [cartMessage, setCartMessage] = useState("");
+  const { showToast } = useToast();
 
   async function handleAddToCart() {
+    if (!product) return;
+
     if (!accessToken) {
-      setCartMessage("Sepete eklemek için giriş yapmalısın.");
+      showToast({
+        title: "Giriş yapmalısın",
+        message: "Sepetine ürün eklemek için hesabına giriş yap.",
+        kind: "info",
+        action: { label: "Giriş yap", to: "/login" },
+      });
       return;
     }
 
     try {
-      const data = await addProductToCart(accessToken, product.id);
-      setCartMessage(data.message);
+      await addProductToCart(accessToken, product.id);
+      showToast({
+        title: "Sepete eklendi",
+        message: `${product.title} sepetine eklendi.`,
+        action: { label: "Sepete git", to: "/shopping-cart" },
+        duration: 6000,
+      });
     } catch (error) {
-      setCartMessage(
-        error instanceof Error ? error.message : "Ürün sepete eklenemedi.",
-      );
+      showToast({
+        title: "Sepete eklenemedi",
+        message:
+          error instanceof Error ? error.message : "Bir hata oluştu.",
+        kind: "error",
+      });
     }
   }
+
   const product = useSelector((state: RootState) => {
     const productId = Number(id);
     return (
@@ -45,6 +63,42 @@ function ProductDetailPage() {
         : null)
     );
   });
+  const isFavorite = useSelector((state: RootState) =>
+    state.products.favorites.some((item) => item.id === Number(id)),
+  );
+  async function handleFavoriteClick() {
+    if (!product) return;
+
+    if (!accessToken) {
+      showToast({
+        title: "Giriş yapmalısın",
+        message: "Favorilerini hesabında saklamak için giriş yap.",
+        kind: "info",
+        action: { label: "Giriş yap", to: "/login" },
+      });
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await removeFavorite(accessToken, product.id);
+      } else {
+        await addFavorite(accessToken, product.id);
+      }
+
+      dispatch(toggleFavorite(product));
+      showToast({
+        title: isFavorite ? "Favorilerden çıkarıldı" : "Favorilere eklendi",
+        message: product.title,
+      });
+    } catch (error) {
+      showToast({
+        title: "Favori işlemi başarısız",
+        message: error instanceof Error ? error.message : "Bir hata oluştu.",
+        kind: "error",
+      });
+    }
+  }
   useEffect(() => {
     if (!id || product) return;
 
@@ -110,13 +164,13 @@ function ProductDetailPage() {
 
               <div className="mt-6 sm:gap-4 sm:items-center sm:flex sm:mt-8">
                 <button
-                  onClick={() => dispatch(toggleFavorite(product))}
+                  onClick={handleFavoriteClick}
                   title=""
                   className="flex items-center bg-[#B0A493] justify-center py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-[#A39480]  hover:bg-[#A39480] cursor-pointer hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 "
                   role="button"
                 >
                   <LuHeart size={18} className="shrink-0 mr-2" />
-                  Favorilere Ekle
+                  {isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
                 </button>
 
                 <button
@@ -125,7 +179,6 @@ function ProductDetailPage() {
                   className="text-white cursor-pointer bg-black mt-4 sm:mt-0 bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-primary-600  focus:outline-none dark:focus:ring-primary-800 flex items-center justify-center"
                   role="button"
                 >
-                  {cartMessage && <p className="mt-2">{cartMessage}</p>}
                   <HiOutlineShoppingBag
                     size={21}
                     className="shrink-0 mr-2"
